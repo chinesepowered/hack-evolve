@@ -457,6 +457,11 @@ body {
   padding: 9px 12px;
   cursor: pointer;
 }
+/* Read-only rows (the live Replay feed) reuse this layout but expand nothing,
+   so they must not advertise a click affordance they don't have. */
+.bug-row.static {
+  cursor: default;
+}
 .bug-sev {
   width: 8px;
   height: 8px;
@@ -697,6 +702,14 @@ body {
   box-shadow: 0 0 20px rgba(44, 224, 168, 0.3);
 }
 .btn.primary:hover:not(:disabled) { background: #46eab5; }
+/* Opacity alone leaves the mint fill and glow reading as "clickable"; a
+   disabled primary has to look inert, or it invites a click that does nothing. */
+.btn.primary:disabled {
+  background: var(--raised);
+  color: var(--muted);
+  border-color: var(--line-strong);
+  box-shadow: none;
+}
 .btn.danger {
   background: linear-gradient(180deg, #2a1520, #211019);
   color: var(--alarm);
@@ -796,14 +809,19 @@ body {
 }
 
 /* ---- responsive ----------------------------------------------------------- */
+/* The control dock is fixed and wraps as the viewport narrows (61px → ~200px
+   tall). Reported by Replay Loop QA as content overlapping the dock, so the
+   shell reserves room for the wrapped height at each breakpoint. */
 @media (max-width: 980px) {
   .deck { grid-template-columns: 1fr; }
   .tiles { grid-template-columns: repeat(3, 1fr); }
   .ecg-wrap { grid-template-columns: 1fr; }
   .ecg-readout { border-right: none; border-bottom: 1px solid var(--line); flex-direction: row; align-items: baseline; gap: 12px; }
+  .shell { padding-bottom: 190px; }
 }
 @media (max-width: 560px) {
   .tiles { grid-template-columns: repeat(2, 1fr); }
+  .shell { padding-bottom: 270px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

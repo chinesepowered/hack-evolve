@@ -46,14 +46,25 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   return body.result;
 }
 
-/** Idempotent: creates the collection on first use so a cold DB just works. */
+/**
+ * Idempotent: creates the collection on first use so a cold DB just works.
+ *
+ * Two concurrent requests can both observe it missing and both try to create
+ * it; the loser gets a 409 that is not an error for our purposes. A compound
+ * defect produces exactly that concurrency, and swallowing it here is what
+ * keeps the second write from being lost.
+ */
 export async function ensureCollection(): Promise<void> {
   const existing = await call<{ collections: { name: string }[] }>("/collections");
   if (existing.collections?.some((c) => c.name === COLLECTION)) return;
-  await call<boolean>(`/collections/${COLLECTION}`, {
-    method: "PUT",
-    body: JSON.stringify({ vectors: { size: VECTOR_DIM, distance: "Cosine" } }),
-  });
+  try {
+    await call<boolean>(`/collections/${COLLECTION}`, {
+      method: "PUT",
+      body: JSON.stringify({ vectors: { size: VECTOR_DIM, distance: "Cosine" } }),
+    });
+  } catch (error) {
+    if (!/already exists/i.test((error as Error).message)) throw error;
+  }
 }
 
 /** Our filter shape → Actian's `must` / `must_not` payload conditions. */
@@ -123,6 +134,28 @@ export async function scrollPoints(limit = 256): Promise<VectorPoint[]> {
     vector: p.vector ?? [],
     payload: p.payload as MemoryPayload,
   }));
+}
+
+/**
+ * Fetch one point by its domain key.
+ *
+ * Used for the reinforcement counter, which must be exact: a filtered vector
+ * search can miss under concurrent writes (two `remember` calls landing at
+ * once reset a counter from 3 to 0), whereas an ID lookup cannot.
+ */
+export async function getPoint(id: string): Promise<VectorPoint | null> {
+  await ensureCollection();
+  try {
+    const result = await call<RawPoint>(`/collections/${COLLECTION}/points/${stableUuid(id)}`);
+    if (!result) return null;
+    return {
+      id: result.payload?.memKey ?? String(result.id),
+      vector: result.vector ?? [],
+      payload: result.payload as MemoryPayload,
+    };
+  } catch {
+    return null; // not found yet — first encounter
+  }
 }
 
 export async function health(): Promise<{ ok: boolean; base: string; collection: string }> {

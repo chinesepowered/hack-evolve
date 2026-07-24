@@ -85,7 +85,7 @@ export function LiveQAPanel() {
       ) : (
         bugs.map((b) => (
           <div key={b.id} className={`bug ${b.status === "resolved" ? "resolved" : "unresolved"}`}>
-            <div className="bug-row">
+            <div className="bug-row static">
               <span className={`bug-sev sev-${severityClass(b.severity)}`} />
               <span className="bug-title">{b.title ?? b.name ?? b.id}</span>
               <span className="bug-status">{b.status ?? "open"}</span>

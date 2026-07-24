@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "preflight": "node scripts/preflight.mjs",
+    "retarget": "node scripts/retarget.mjs",
+    "reset": "node scripts/reset-demo.mjs"
   },
   "dependencies": {
     "@actian/vectorai-client": "^1.0.2",

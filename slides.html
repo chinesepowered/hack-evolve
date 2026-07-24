@@ -7,7 +7,6 @@
     <style>
       :root {
         --bg: #0b1215;
-        --bezel: #090e11;
         --panel: #0f181d;
         --line: rgba(150, 200, 210, 0.12);
         --line-strong: rgba(150, 200, 210, 0.2);
@@ -38,143 +37,157 @@
       .slide {
         position: absolute; inset: 0;
         display: flex; flex-direction: column; justify-content: center;
-        padding: clamp(28px, 7vw, 110px);
+        padding: clamp(24px, 6vw, 96px);
         opacity: 0; transform: translateY(14px); pointer-events: none;
         transition: opacity 0.5s ease, transform 0.5s ease;
+        overflow-y: auto;
       }
       .slide.active { opacity: 1; transform: none; pointer-events: auto; }
       .eyebrow {
         font-family: var(--mono); font-size: 12px; letter-spacing: 0.24em;
-        text-transform: uppercase; color: var(--faint); margin-bottom: 20px;
+        text-transform: uppercase; color: var(--faint); margin-bottom: 18px;
       }
       .eyebrow b { color: var(--mint); font-weight: 600; }
       h1 {
-        font-size: clamp(38px, 6.4vw, 88px); line-height: 0.98; font-weight: 800;
+        font-size: clamp(36px, 6vw, 84px); line-height: 0.98; font-weight: 800;
         letter-spacing: -0.02em; max-width: 16ch;
       }
       h1 .grad {
         background: linear-gradient(96deg, var(--ink), var(--mint));
         -webkit-background-clip: text; background-clip: text; color: transparent;
       }
-      .lede { font-size: clamp(16px, 2.1vw, 24px); color: var(--muted); max-width: 40ch; margin-top: 26px; line-height: 1.5; }
+      .lede { font-size: clamp(15px, 1.9vw, 22px); color: var(--muted); max-width: 44ch; margin-top: 24px; line-height: 1.5; }
       .lede b { color: var(--ink); font-weight: 600; }
-      h2 { font-size: clamp(26px, 4vw, 52px); font-weight: 800; letter-spacing: -0.015em; margin-bottom: 8px; }
+      h2 { font-size: clamp(24px, 3.6vw, 48px); font-weight: 800; letter-spacing: -0.015em; margin-bottom: 8px; }
       h2 .grad { background: linear-gradient(96deg, var(--ink), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-      .sub { color: var(--muted); font-size: clamp(15px, 1.8vw, 20px); max-width: 52ch; line-height: 1.5; }
+      .sub { color: var(--muted); font-size: clamp(14px, 1.6vw, 19px); max-width: 60ch; line-height: 1.5; }
 
-      /* slide 1 ECG accent */
-      .ecg { position: absolute; left: 0; right: 0; bottom: 12%; height: 120px; opacity: 0.9; }
+      .ecg { position: absolute; left: 0; right: 0; bottom: 11%; height: 110px; opacity: 0.9; }
       .ecg path { fill: none; stroke: var(--mint); stroke-width: 2.5;
         filter: drop-shadow(0 0 10px rgba(44, 224, 168, 0.6));
         stroke-dasharray: 2600; stroke-dashoffset: 2600; animation: draw 3.2s ease-out forwards; }
       @keyframes draw { to { stroke-dashoffset: 0; } }
       .wordmark-dot { display: inline-block; width: 12px; height: 12px; border-radius: 999px;
         background: var(--mint); box-shadow: 0 0 16px var(--mint); vertical-align: middle;
-        margin-left: 6px; animation: blink 2.2s ease-in-out infinite; }
+        margin-left: 8px; animation: blink 2.2s ease-in-out infinite; }
       @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-      /* loop diagram */
-      .loop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; max-width: 1000px; }
-      .node { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.12)), var(--panel); }
+      .loop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; max-width: 1080px; }
+      .node { border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.12)), var(--panel); }
       .node .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
       .node.a .tag { color: var(--cyan); }
-      .node.b .tag { color: var(--violet); }
-      .node.c .tag { color: var(--mint); }
-      .node h3 { font-size: 19px; margin: 10px 0 6px; }
-      .node p { color: var(--muted); font-size: 14px; line-height: 1.5; }
-      .insight { margin-top: 30px; border-left: 2px solid var(--mint); padding: 6px 0 6px 18px; max-width: 60ch; color: var(--ink); font-size: clamp(15px,1.7vw,19px); line-height: 1.55; }
+      .node.b .tag { color: var(--mint); }
+      .node.c .tag { color: var(--violet); }
+      .node h3 { font-size: 18px; margin: 9px 0 6px; }
+      .node p { color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+      .node .metric { display: block; margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--ink); }
+      .insight { margin-top: 26px; border-left: 2px solid var(--mint); padding: 6px 0 6px 18px;
+        max-width: 64ch; color: var(--ink); font-size: clamp(14px,1.6vw,18px); line-height: 1.55; }
       .insight b { color: var(--mint); }
 
-      /* prize cards */
-      .prizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 36px; max-width: 1040px; }
-      .prize { border: 1px solid var(--line); border-radius: 14px; padding: 22px; background: var(--panel); }
+      .prizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 30px; max-width: 1120px; }
+      .prize { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: var(--panel); }
       .prize .p-top { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; }
       .dot { width: 10px; height: 10px; border-radius: 999px; }
-      .prize p { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 10px; }
+      .prize p { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin-top: 9px; }
       .prize .k { color: var(--ink); font-weight: 600; }
-      .close { margin-top: 34px; font-size: clamp(16px,2vw,22px); color: var(--ink); max-width: 54ch; line-height: 1.5; }
+      .proof { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--line-strong);
+        font-family: var(--mono); font-size: 12px; color: var(--mint); }
+      .close { margin-top: 28px; font-size: clamp(15px,1.8vw,21px); color: var(--ink); max-width: 58ch; line-height: 1.5; }
       .close b { color: var(--mint); }
 
-      /* chrome */
-      .brand { position: fixed; top: 26px; left: 30px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--faint); z-index: 5; }
-      .counter { position: fixed; bottom: 24px; right: 30px; font-family: var(--mono); font-size: 12px; color: var(--faint); z-index: 5; }
-      .dots { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; z-index: 5; }
-      .dots button { width: 8px; height: 8px; border-radius: 999px; border: none; background: var(--line-strong); cursor: pointer; padding: 0; transition: all 0.25s; }
+      .brand { position: fixed; top: 24px; left: 28px; font-family: var(--mono); font-size: 12px;
+        letter-spacing: 0.28em; text-transform: uppercase; color: var(--faint); z-index: 5; }
+      .counter { position: fixed; bottom: 22px; right: 28px; font-family: var(--mono); font-size: 12px; color: var(--faint); z-index: 5; }
+      .dots { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; z-index: 5; }
+      .dots button { width: 8px; height: 8px; border-radius: 999px; border: none; background: var(--line-strong);
+        cursor: pointer; padding: 0; transition: all 0.25s; }
       .dots button.on { background: var(--mint); box-shadow: 0 0 10px var(--mint); width: 22px; }
-      .hint { position: fixed; bottom: 24px; left: 30px; font-family: var(--mono); font-size: 11px; color: var(--faint); z-index: 5; }
-      @media (max-width: 760px) {
+      .hint { position: fixed; bottom: 22px; left: 28px; font-family: var(--mono); font-size: 11px; color: var(--faint); z-index: 5; }
+      @media (max-width: 860px) {
         .loop, .prizes { grid-template-columns: 1fr; }
         .hint { display: none; }
+        .ecg { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+        .ecg path { stroke-dashoffset: 0; }
       }
     </style>
   </head>
   <body>
     <div class="brand">Regenesis</div>
     <div class="deck" id="deck">
-      <!-- Slide 1 -->
+      <!-- 1 -->
       <section class="slide active">
         <div class="eyebrow">self-evolving agents · <b>all three integrations live</b></div>
         <h1><span class="grad">The app that fixes<br />its own bugs.</span><span class="wordmark-dot"></span></h1>
         <p class="lede">
-          Regenesis runs a real hospital scheduling SaaS under a closed self-healing loop.
-          Break it, and it <b>detects, diagnoses, patches, and re-tests</b> — learning a
-          reusable skill every time. Its health is a heartbeat: sabotage is arrhythmia,
-          healing is sinus rhythm.
+          A real hospital scheduler under a closed self-healing loop. Break a safety rule and it
+          <b>detects, recalls, repairs, and verifies</b> — getting faster every time it sees the
+          same failure. Its health is a heartbeat: sabotage is arrhythmia, healing is sinus rhythm.
         </p>
-        <svg class="ecg" viewBox="0 0 1400 120" preserveAspectRatio="none">
+        <svg class="ecg" viewBox="0 0 1400 120" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0,60 L360,60 L378,60 L388,26 L398,92 L410,44 L420,60 L740,60 L758,60 L768,26 L778,92 L790,44 L800,60 L1120,60 L1138,60 L1148,26 L1158,92 L1170,44 L1180,60 L1400,60" />
         </svg>
       </section>
 
-      <!-- Slide 2 -->
+      <!-- 2 -->
       <section class="slide">
-        <div class="eyebrow">how it works · a closed loop</div>
+        <div class="eyebrow">how it works</div>
         <h2><span class="grad">QA is the selection pressure.</span></h2>
-        <p class="sub">Three sponsor systems form one evolutionary loop around the product.</p>
+        <p class="sub">Three sponsor systems form one evolutionary loop around a real product.</p>
         <div class="loop">
           <div class="node a">
             <div class="tag">Replay · Loop QA</div>
             <h3>Detect</h3>
-            <p>Autonomous exploration of the live deployment. It found a real WCAG violation on its own, with a Replay recording — we fixed it and re-tested.</p>
+            <p>Autonomous exploration of the live deployment. It found a hydration failure from runtime behaviour that looked perfect on localhost — and would have broken this demo.</p>
+            <span class="metric">3 real bugs found → 3 fixed</span>
           </div>
           <div class="node b">
             <div class="tag">Actian · VectorAI</div>
             <h3>Recall</h3>
-            <p>"Have I seen this failure before?" Real cosine ANN over proven fixes. First encounter → 0.00. Same defect again → <b>1.00</b>, reinforced in place.</p>
+            <p>"Have I seen this failure before?" Real cosine ANN over proven fixes, filtered so a fix that failed is never recalled as a solution.</p>
+            <span class="metric">first: 0.00 · repeat: 1.00</span>
           </div>
           <div class="node c">
             <div class="tag">Guild · Agent Hub</div>
             <h3>Evolve</h3>
             <p>A published agent runs off-machine and drives the app through a Guild integration: probe → recall → patch → verify → remember.</p>
+            <span class="metric">27 violations → 0</span>
           </div>
         </div>
         <p class="insight">
           The trick that makes it real: the app's <b>rules</b> are mutable (the genome), but the
-          <b>safety spec</b> the oracle audits against is fixed. Sabotage weakens enforcement;
-          the oracle can't be talked out of catching it. Every bug is genuinely detected — never scripted.
+          <b>safety spec</b> the oracle audits against is fixed. Sabotage weakens enforcement; the
+          oracle can't be talked out of catching it. Every bug is genuinely computed — never scripted.
         </p>
       </section>
 
-      <!-- Slide 3 -->
+      <!-- 3 -->
       <section class="slide">
         <div class="eyebrow">why it wins</div>
         <h2><span class="grad">One build. Three prizes.</span></h2>
         <div class="prizes">
           <div class="prize">
             <div class="p-top"><span class="dot" style="background: var(--violet)"></span> Guild</div>
-            <p><span class="k">Published and running.</span> Guild agents can't open sockets, so MedShift is a real Guild integration — four proxied operations from an OpenAPI spec. The agent took the app from <span class="k">14 violations to 0</span> without ever running on our machine.</p>
+            <p>Guild agents can't open sockets — so MedShift <span class="k">became a Guild integration</span>, four proxied operations from an OpenAPI spec. Given a compound defect breaking two guards, the agent found both, patched both, and verified.</p>
+            <div class="proof">✓ published · healed 27 → 0 off-machine</div>
           </div>
           <div class="prize">
             <div class="p-top"><span class="dot" style="background: var(--cyan)"></span> Replay</div>
-            <p><span class="k">Real QA, closed loop.</span> Loop QA explored the deployment, discovered journeys, and filed a genuine accessibility bug. We fixed it and re-tested. Two ledgers, kept honest: the oracle checks invariants, Replay checks the product.</p>
+            <p>Loop QA explored the deployment and filed <span class="k">genuine bugs we fixed and re-tested</span> — including a hydration failure diagnosed from "0 React commits". Two ledgers kept honestly distinct: oracle checks invariants, Replay checks the product.</p>
+            <div class="proof">✓ found → fixed → re-tested</div>
           </div>
           <div class="prize">
             <div class="p-top"><span class="dot" style="background: var(--mint)"></span> Actian</div>
-            <p><span class="k">Real vectors, real recall.</span> 96-dim cosine collection; fixes stored as points with must/must-not filters. Repeat defect recalls at <span class="k">cosine 1.00</span> and reinforces in place — the count stays 1.</p>
+            <p>96-dim cosine collection as <span class="k">agent memory</span>. Repeat defects recall at cosine 1.00 and reinforce <span class="k">in place</span> — the point count stays 1, the counter climbs.</p>
+            <div class="proof">✓ real vectors · warm recall 1.00</div>
           </div>
         </div>
         <p class="close">
-          Then we hand a judge the <b>Sabotage</b> button. They break the app; it heals in front of them.
+          Then we hand a judge the <b>Sabotage</b> button. They break it; it heals in front of them.
           If it's seen the defect before — <b>cosine 1.00, instant fix.</b> That's the evolution, live.
         </p>
       </section>
@@ -191,6 +204,7 @@
       let i = 0;
       slides.forEach((_, n) => {
         const b = document.createElement("button");
+        b.setAttribute("aria-label", "Go to slide " + (n + 1));
         b.addEventListener("click", () => go(n));
         dotsWrap.appendChild(b);
       });
@@ -199,7 +213,8 @@
         i = Math.max(0, Math.min(slides.length - 1, n));
         slides.forEach((s, k) => s.classList.toggle("active", k === i));
         dots.forEach((d, k) => d.classList.toggle("on", k === i));
-        counter.textContent = String(i + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+        counter.textContent =
+          String(i + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
       }
       document.addEventListener("keydown", (e) => {
         if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); go(i + 1); }

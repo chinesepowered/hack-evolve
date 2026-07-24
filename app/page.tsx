@@ -37,7 +37,7 @@ export default function Page() {
  */
 function BootScreen() {
   return (
-    <div className="shell">
+    <main className="shell">
       <div className="topbar">
         <div>
           <h1 className="wordmark">
@@ -63,7 +63,7 @@ function BootScreen() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -72,7 +72,7 @@ function CommandCenter() {
   const sick = snap.vitals.openBugs > 0;
 
   return (
-    <div className="shell">
+    <main className="shell">
       {/* Topbar */}
       <div className="topbar">
         <div>
@@ -199,7 +199,7 @@ function CommandCenter() {
       </div>
 
       <ControlDock engine={engine} snap={snap} />
-    </div>
+    </main>
   );
 }
 
