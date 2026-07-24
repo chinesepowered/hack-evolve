@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Regenesis — pitch</title>
+    <style>
+      :root {
+        --bg: #0b1215;
+        --bezel: #090e11;
+        --panel: #0f181d;
+        --line: rgba(150, 200, 210, 0.12);
+        --line-strong: rgba(150, 200, 210, 0.2);
+        --ink: #e9f2f3;
+        --muted: #8ba4ac;
+        --faint: #5a7078;
+        --mint: #2ce0a8;
+        --cyan: #4cc9e8;
+        --amber: #f2b65a;
+        --alarm: #ff5c7a;
+        --violet: #9a8cff;
+        --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; }
+      body {
+        background:
+          radial-gradient(1100px 640px at 80% -10%, rgba(44, 224, 168, 0.07), transparent 60%),
+          radial-gradient(900px 560px at 6% 110%, rgba(76, 201, 232, 0.06), transparent 55%),
+          var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+      }
+      .deck { height: 100vh; width: 100vw; position: relative; }
+      .slide {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column; justify-content: center;
+        padding: clamp(28px, 7vw, 110px);
+        opacity: 0; transform: translateY(14px); pointer-events: none;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+      .slide.active { opacity: 1; transform: none; pointer-events: auto; }
+      .eyebrow {
+        font-family: var(--mono); font-size: 12px; letter-spacing: 0.24em;
+        text-transform: uppercase; color: var(--faint); margin-bottom: 20px;
+      }
+      .eyebrow b { color: var(--mint); font-weight: 600; }
+      h1 {
+        font-size: clamp(38px, 6.4vw, 88px); line-height: 0.98; font-weight: 800;
+        letter-spacing: -0.02em; max-width: 16ch;
+      }
+      h1 .grad {
+        background: linear-gradient(96deg, var(--ink), var(--mint));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .lede { font-size: clamp(16px, 2.1vw, 24px); color: var(--muted); max-width: 40ch; margin-top: 26px; line-height: 1.5; }
+      .lede b { color: var(--ink); font-weight: 600; }
+      h2 { font-size: clamp(26px, 4vw, 52px); font-weight: 800; letter-spacing: -0.015em; margin-bottom: 8px; }
+      h2 .grad { background: linear-gradient(96deg, var(--ink), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .sub { color: var(--muted); font-size: clamp(15px, 1.8vw, 20px); max-width: 52ch; line-height: 1.5; }
+
+      /* slide 1 ECG accent */
+      .ecg { position: absolute; left: 0; right: 0; bottom: 12%; height: 120px; opacity: 0.9; }
+      .ecg path { fill: none; stroke: var(--mint); stroke-width: 2.5;
+        filter: drop-shadow(0 0 10px rgba(44, 224, 168, 0.6));
+        stroke-dasharray: 2600; stroke-dashoffset: 2600; animation: draw 3.2s ease-out forwards; }
+      @keyframes draw { to { stroke-dashoffset: 0; } }
+      .wordmark-dot { display: inline-block; width: 12px; height: 12px; border-radius: 999px;
+        background: var(--mint); box-shadow: 0 0 16px var(--mint); vertical-align: middle;
+        margin-left: 6px; animation: blink 2.2s ease-in-out infinite; }
+      @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+      /* loop diagram */
+      .loop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; max-width: 1000px; }
+      .node { border: 1px solid var(--line); border-radius: 14px; padding: 20px; background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.12)), var(--panel); }
+      .node .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+      .node.a .tag { color: var(--cyan); }
+      .node.b .tag { color: var(--violet); }
+      .node.c .tag { color: var(--mint); }
+      .node h3 { font-size: 19px; margin: 10px 0 6px; }
+      .node p { color: var(--muted); font-size: 14px; line-height: 1.5; }
+      .insight { margin-top: 30px; border-left: 2px solid var(--mint); padding: 6px 0 6px 18px; max-width: 60ch; color: var(--ink); font-size: clamp(15px,1.7vw,19px); line-height: 1.55; }
+      .insight b { color: var(--mint); }
+
+      /* prize cards */
+      .prizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 36px; max-width: 1040px; }
+      .prize { border: 1px solid var(--line); border-radius: 14px; padding: 22px; background: var(--panel); }
+      .prize .p-top { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; }
+      .dot { width: 10px; height: 10px; border-radius: 999px; }
+      .prize p { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 10px; }
+      .prize .k { color: var(--ink); font-weight: 600; }
+      .close { margin-top: 34px; font-size: clamp(16px,2vw,22px); color: var(--ink); max-width: 54ch; line-height: 1.5; }
+      .close b { color: var(--mint); }
+
+      /* chrome */
+      .brand { position: fixed; top: 26px; left: 30px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--faint); z-index: 5; }
+      .counter { position: fixed; bottom: 24px; right: 30px; font-family: var(--mono); font-size: 12px; color: var(--faint); z-index: 5; }
+      .dots { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; z-index: 5; }
+      .dots button { width: 8px; height: 8px; border-radius: 999px; border: none; background: var(--line-strong); cursor: pointer; padding: 0; transition: all 0.25s; }
+      .dots button.on { background: var(--mint); box-shadow: 0 0 10px var(--mint); width: 22px; }
+      .hint { position: fixed; bottom: 24px; left: 30px; font-family: var(--mono); font-size: 11px; color: var(--faint); z-index: 5; }
+      @media (max-width: 760px) {
+        .loop, .prizes { grid-template-columns: 1fr; }
+        .hint { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brand">Regenesis</div>
+    <div class="deck" id="deck">
+      <!-- Slide 1 -->
+      <section class="slide active">
+        <div class="eyebrow">self-evolving agents · <b>live demo</b></div>
+        <h1><span class="grad">The app that fixes<br />its own bugs.</span><span class="wordmark-dot"></span></h1>
+        <p class="lede">
+          Regenesis runs a real hospital scheduling SaaS under a closed self-healing loop.
+          Break it, and it <b>detects, diagnoses, patches, and re-tests</b> — learning a
+          reusable skill every time. Its health is a heartbeat: sabotage is arrhythmia,
+          healing is sinus rhythm.
+        </p>
+        <svg class="ecg" viewBox="0 0 1400 120" preserveAspectRatio="none">
+          <path d="M0,60 L360,60 L378,60 L388,26 L398,92 L410,44 L420,60 L740,60 L758,60 L768,26 L778,92 L790,44 L800,60 L1120,60 L1138,60 L1148,26 L1158,92 L1170,44 L1180,60 L1400,60" />
+        </svg>
+      </section>
+
+      <!-- Slide 2 -->
+      <section class="slide">
+        <div class="eyebrow">how it works · a closed loop</div>
+        <h2><span class="grad">QA is the selection pressure.</span></h2>
+        <p class="sub">Three sponsor systems form one evolutionary loop around the product.</p>
+        <div class="loop">
+          <div class="node a">
+            <div class="tag">Replay · Loop QA</div>
+            <h3>Detect</h3>
+            <p>Autonomous exploration files real bugs — reproduction, root cause, screenshot chronology. The externally-judged fitness function.</p>
+          </div>
+          <div class="node b">
+            <div class="tag">Actian · VectorAI</div>
+            <h3>Recall</h3>
+            <p>"Have I seen this failure before?" Cosine search over proven fixes. Same defect → instant warm recall. New defect → first encounter.</p>
+          </div>
+          <div class="node c">
+            <div class="tag">Guild · Agent Hub</div>
+            <h3>Evolve</h3>
+            <p>The agent patches the rule genome, verifies, and publishes a versioned Skill. Next time, the skill activates instantly — it got faster.</p>
+          </div>
+        </div>
+        <p class="insight">
+          The trick that makes it real: the app's <b>rules</b> are mutable (the genome), but the
+          <b>safety spec</b> the oracle audits against is fixed. Sabotage weakens enforcement;
+          the oracle can't be talked out of catching it. Every bug is genuinely detected — never scripted.
+        </p>
+      </section>
+
+      <!-- Slide 3 -->
+      <section class="slide">
+        <div class="eyebrow">why it wins</div>
+        <h2><span class="grad">One build. Three prizes.</span></h2>
+        <div class="prizes">
+          <div class="prize">
+            <div class="p-top"><span class="dot" style="background: var(--violet)"></span> Guild</div>
+            <p>An agent that <span class="k">authors its own versioned Skills</span> on the Agent Hub and gets measurably faster each generation. Self-evolution in native Guild primitives — triggers, task state, skills.</p>
+          </div>
+          <div class="prize">
+            <div class="p-top"><span class="dot" style="background: var(--cyan)"></span> Replay</div>
+            <p>A well-designed SaaS that <span class="k">QA's itself to zero open bugs</span>. Completed QA with every bug fixed isn't a checkbox — it's the product's win condition.</p>
+          </div>
+          <div class="prize">
+            <div class="p-top"><span class="dot" style="background: var(--mint)"></span> Actian</div>
+            <p>VectorAI as <span class="k">agent memory</span>: fixes stored as points, recall via cosine ANN with must/must-not filters and RRF hybrid search — exactly as documented.</p>
+          </div>
+        </div>
+        <p class="close">
+          Then we hand a judge the <b>Sabotage</b> button. They break the app; it heals in front of them.
+          If it's seen the defect before — <b>cosine 1.00, instant fix.</b> That's the evolution, live.
+        </p>
+      </section>
+    </div>
+
+    <div class="dots" id="dots"></div>
+    <div class="counter" id="counter">01 / 03</div>
+    <div class="hint">← → to navigate</div>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const dotsWrap = document.getElementById("dots");
+      const counter = document.getElementById("counter");
+      let i = 0;
+      slides.forEach((_, n) => {
+        const b = document.createElement("button");
+        b.addEventListener("click", () => go(n));
+        dotsWrap.appendChild(b);
+      });
+      const dots = [...dotsWrap.children];
+      function go(n) {
+        i = Math.max(0, Math.min(slides.length - 1, n));
+        slides.forEach((s, k) => s.classList.toggle("active", k === i));
+        dots.forEach((d, k) => d.classList.toggle("on", k === i));
+        counter.textContent = String(i + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); go(i + 1); }
+        if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(i - 1); }
+        if (e.key === "Home") go(0);
+        if (e.key === "End") go(slides.length - 1);
+      });
+      document.getElementById("deck").addEventListener("click", (e) => {
+        if (e.target.closest(".dots")) return;
+        go(i + (e.clientX > window.innerWidth / 2 ? 1 : -1));
+      });
+      go(0);
+    </script>
+  </body>
+</html>
