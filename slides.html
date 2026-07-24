@@ -113,7 +113,7 @@
     <div class="deck" id="deck">
       <!-- Slide 1 -->
       <section class="slide active">
-        <div class="eyebrow">self-evolving agents · <b>live demo</b></div>
+        <div class="eyebrow">self-evolving agents · <b>all three integrations live</b></div>
         <h1><span class="grad">The app that fixes<br />its own bugs.</span><span class="wordmark-dot"></span></h1>
         <p class="lede">
           Regenesis runs a real hospital scheduling SaaS under a closed self-healing loop.
@@ -135,17 +135,17 @@
           <div class="node a">
             <div class="tag">Replay · Loop QA</div>
             <h3>Detect</h3>
-            <p>Autonomous exploration files real bugs — reproduction, root cause, screenshot chronology. The externally-judged fitness function.</p>
+            <p>Autonomous exploration of the live deployment. It found a real WCAG violation on its own, with a Replay recording — we fixed it and re-tested.</p>
           </div>
           <div class="node b">
             <div class="tag">Actian · VectorAI</div>
             <h3>Recall</h3>
-            <p>"Have I seen this failure before?" Cosine search over proven fixes. Same defect → instant warm recall. New defect → first encounter.</p>
+            <p>"Have I seen this failure before?" Real cosine ANN over proven fixes. First encounter → 0.00. Same defect again → <b>1.00</b>, reinforced in place.</p>
           </div>
           <div class="node c">
             <div class="tag">Guild · Agent Hub</div>
             <h3>Evolve</h3>
-            <p>The agent patches the rule genome, verifies, and publishes a versioned Skill. Next time, the skill activates instantly — it got faster.</p>
+            <p>A published agent runs off-machine and drives the app through a Guild integration: probe → recall → patch → verify → remember.</p>
           </div>
         </div>
         <p class="insight">
@@ -162,15 +162,15 @@
         <div class="prizes">
           <div class="prize">
             <div class="p-top"><span class="dot" style="background: var(--violet)"></span> Guild</div>
-            <p>An agent that <span class="k">authors its own versioned Skills</span> on the Agent Hub and gets measurably faster each generation. Self-evolution in native Guild primitives — triggers, task state, skills.</p>
+            <p><span class="k">Published and running.</span> Guild agents can't open sockets, so MedShift is a real Guild integration — four proxied operations from an OpenAPI spec. The agent took the app from <span class="k">14 violations to 0</span> without ever running on our machine.</p>
           </div>
           <div class="prize">
             <div class="p-top"><span class="dot" style="background: var(--cyan)"></span> Replay</div>
-            <p>A well-designed SaaS that <span class="k">QA's itself to zero open bugs</span>. Completed QA with every bug fixed isn't a checkbox — it's the product's win condition.</p>
+            <p><span class="k">Real QA, closed loop.</span> Loop QA explored the deployment, discovered journeys, and filed a genuine accessibility bug. We fixed it and re-tested. Two ledgers, kept honest: the oracle checks invariants, Replay checks the product.</p>
           </div>
           <div class="prize">
             <div class="p-top"><span class="dot" style="background: var(--mint)"></span> Actian</div>
-            <p>VectorAI as <span class="k">agent memory</span>: fixes stored as points, recall via cosine ANN with must/must-not filters and RRF hybrid search — exactly as documented.</p>
+            <p><span class="k">Real vectors, real recall.</span> 96-dim cosine collection; fixes stored as points with must/must-not filters. Repeat defect recalls at <span class="k">cosine 1.00</span> and reinforces in place — the count stays 1.</p>
           </div>
         </div>
         <p class="close">

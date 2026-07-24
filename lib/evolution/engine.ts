@@ -3,7 +3,14 @@ import { audit, severityScore, severityWeight } from "@/lib/domain/oracle";
 import { autoSchedule } from "@/lib/domain/scheduler";
 import { seedStaff } from "@/lib/domain/seed";
 import type { RulesConfig, Shift, StaffMember, Violation } from "@/lib/domain/types";
-import { createSponsors, sponsorMode, type SponsorSuite } from "@/lib/sponsors";
+import {
+  actianMode,
+  allLive,
+  createSponsors,
+  guildMode,
+  replayMode,
+  type SponsorSuite,
+} from "@/lib/sponsors";
 import type { GuildEvent, GuildSkill, ReplayBug, VectorHit } from "@/lib/sponsors/types";
 import { embed } from "./embeddings";
 import { repairForGuard } from "./repair";
@@ -50,6 +57,8 @@ export interface Vitals {
 
 export interface EngineSnapshot {
   mode: "sim" | "live";
+  /** Per-sponsor mode: they come online independently, so the badges say so. */
+  modes: { actian: "sim" | "live"; replay: "sim" | "live"; guild: "sim" | "live" };
   generation: number;
   version: number;
   phase: Phase;
@@ -155,7 +164,8 @@ export class RegenesisEngine {
     const bugs = this.cachedBugs;
     const skills = this.cachedSkills;
     this.snapshot = {
-      mode: sponsorMode(),
+      mode: allLive() ? "live" : "sim",
+      modes: { actian: actianMode(), replay: replayMode(), guild: guildMode() },
       generation: this.generation,
       version: this.cachedVersion,
       phase: this.phase,

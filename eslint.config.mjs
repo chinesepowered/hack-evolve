@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The Guild agent is a separate deployable with its own toolchain and
+    // build output; Guild validates it on publish.
+    "agent/**",
   ]),
 ]);
 

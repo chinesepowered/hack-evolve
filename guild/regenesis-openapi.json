@@ -1,0 +1,184 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Regenesis MedShift Control API",
+    "version": "1.0.0",
+    "description": "Observe, repair, and remember safety-rule regressions in the MedShift scheduling application. Guild agents cannot open outbound sockets directly, so these operations are proxied by the Guild integration layer."
+  },
+  "paths": {
+    "/api/regenesis/probe": {
+      "post": {
+        "operationId": "medshift_probe",
+        "summary": "Audit the live schedule against the immutable safety policy and return one finding per violated guard. Zero findings means the app is healthy.",
+        "tags": ["medshift"],
+        "responses": {
+          "200": {
+            "description": "Current findings and app state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "findings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "guard": { "type": "string", "description": "The safety guard that is violated." },
+                          "label": { "type": "string" },
+                          "severity": { "type": "string" },
+                          "count": { "type": "integer" },
+                          "example": { "type": "string", "description": "A representative violation message." }
+                        }
+                      }
+                    },
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "healthy": { "type": "boolean" },
+                        "totalViolations": { "type": "integer" },
+                        "revision": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/regenesis/patch": {
+      "post": {
+        "operationId": "medshift_patch",
+        "summary": "Repair the implicated guard by restoring it to the signed-off policy. Returns violation counts before and after so the repair can be verified.",
+        "tags": ["medshift"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["guard"],
+                "properties": {
+                  "guard": {
+                    "type": "string",
+                    "enum": [
+                      "certification",
+                      "doubleBooking",
+                      "maxWeeklyHours",
+                      "minRest",
+                      "maxConsecutiveDays",
+                      "coverageMinimum"
+                    ],
+                    "description": "The guard named by the finding you are repairing."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patch result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "guard": { "type": "string" },
+                    "violationsBefore": { "type": "integer" },
+                    "violationsAfter": { "type": "integer" },
+                    "resolved": { "type": "boolean" },
+                    "changes": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/memory/recall": {
+      "post": {
+        "operationId": "memory_recall",
+        "summary": "Ask long-term vector memory (Actian VectorAI) whether this failure has been seen before. warm=true means a proven fix exists for this defect class.",
+        "tags": ["memory"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string", "description": "Description of the failure, e.g. the finding's example message." },
+                  "guard": { "type": "string", "description": "Optional guard name for traceability." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recall result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "warm": { "type": "boolean", "description": "True when a past fix clears the similarity threshold." },
+                    "score": { "type": "number", "description": "Cosine similarity of the best match." },
+                    "threshold": { "type": "number" },
+                    "match": { "type": "object", "description": "The remembered fix, when warm." }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/memory/remember": {
+      "post": {
+        "operationId": "memory_remember",
+        "summary": "Store a fix that has been verified to work, so the next occurrence of this defect is recognised instantly. Only call after a probe confirms the finding is gone.",
+        "tags": ["memory"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text", "guard", "outcome"],
+                "properties": {
+                  "text": { "type": "string", "description": "The failure description this fix resolves." },
+                  "guard": { "type": "string" },
+                  "outcome": { "type": "string", "enum": ["success", "fail"], "description": "Use 'success' only after verifying." },
+                  "generation": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "id": { "type": "string" },
+                    "timesReinforced": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

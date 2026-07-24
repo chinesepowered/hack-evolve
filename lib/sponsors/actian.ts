@@ -1,5 +1,4 @@
 import { cosine } from "@/lib/evolution/embeddings";
-import { SPONSOR_ENDPOINTS } from "./config";
 import type { ActianClient, VectorFilter, VectorHit, VectorPoint } from "./types";
 
 function matchesFilter(point: VectorPoint, filter?: VectorFilter): boolean {
@@ -19,11 +18,35 @@ function matchesFilter(point: VectorPoint, filter?: VectorFilter): boolean {
 }
 
 /**
- * Simulated Actian VectorAI collection.
+ * Reciprocal Rank Fusion over several ranked lists.
  *
- * Faithful to the real API surface: cosine ANN, must/must-not payload filters,
- * and Reciprocal Rank Fusion for hybrid retrieval — the same primitives the
- * live client calls over HTTP.
+ * Actian VectorAI exposes vector similarity search; it has no native hybrid or
+ * keyword mode. So the fusion is ours: we issue one real ANN query per view of
+ * the defect and fuse the returned rankings here. Shared by the sim and live
+ * clients so both behave identically.
+ */
+const RRF_K = 60;
+
+function fuse(rankings: VectorHit[][], topK: number): VectorHit[] {
+  const fused = new Map<string, { hit: VectorHit; score: number }>();
+  for (const ranked of rankings) {
+    ranked.forEach((hit, rank) => {
+      const prev = fused.get(hit.id);
+      const contribution = 1 / (RRF_K + rank + 1);
+      if (prev) prev.score += contribution;
+      else fused.set(hit.id, { hit, score: contribution });
+    });
+  }
+  return [...fused.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK)
+    .map(({ hit, score }) => ({ ...hit, score }));
+}
+
+/**
+ * Simulated Actian VectorAI collection — used when NEXT_PUBLIC_REGENESIS_MODE
+ * is "sim" (no Docker required). Mirrors the live surface: cosine ANN,
+ * must/must-not payload filters, RRF fusion.
  */
 export class SimActianClient implements ActianClient {
   readonly kind = "sim" as const;
@@ -51,21 +74,10 @@ export class SimActianClient implements ActianClient {
     vectors: number[][],
     opts: { topK?: number; filter?: VectorFilter } = {},
   ): Promise<VectorHit[]> {
-    const K = 60; // RRF damping constant
-    const fused = new Map<string, { hit: VectorHit; score: number }>();
-    for (const v of vectors) {
-      const ranked = await this.search(v, { topK: 20, filter: opts.filter });
-      ranked.forEach((hit, rank) => {
-        const prev = fused.get(hit.id);
-        const contribution = 1 / (K + rank + 1);
-        if (prev) prev.score += contribution;
-        else fused.set(hit.id, { hit, score: contribution });
-      });
-    }
-    return [...fused.values()]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, opts.topK ?? 5)
-      .map(({ hit, score }) => ({ ...hit, score }));
+    const rankings = await Promise.all(
+      vectors.map((v) => this.search(v, { topK: 20, filter: opts.filter })),
+    );
+    return fuse(rankings, opts.topK ?? 5);
   }
 
   async all(): Promise<VectorPoint[]> {
@@ -78,34 +90,61 @@ export class SimActianClient implements ActianClient {
 }
 
 /**
- * Live Actian client — reference implementation for the hackathon switch.
- * Uncomment the fetch bodies and provide ACTIAN_TOKEN once accounts are live.
- * The shapes follow docs.vectoraidb.actian.com (collections / points / search).
+ * Live Actian VectorAI client.
+ *
+ * VectorAI is a local/edge database (REST :6573, gRPC :6574) — the browser
+ * cannot reach it, so this client calls our own route handlers under
+ * app/api/memory/*, which hold the real connection server-side. Same interface
+ * as the sim, so the engine above never learns which one it has.
  */
 export class LiveActianClient implements ActianClient {
-  readonly kind = "sim" as const; // reports "sim" until wired, so the UI badge is honest
-  constructor(
-    private readonly collection = "regenesis_memory",
-    private readonly base = SPONSOR_ENDPOINTS.actian,
-    private readonly token = (typeof process !== "undefined" && process.env?.ACTIAN_TOKEN) || "",
-  ) {}
+  readonly kind = "live" as const;
 
-  async upsert(): Promise<void> {
-    throw new Error(
-      "LiveActianClient not enabled. Wire POST " +
-        `${this.base}/collections/${this.collection}/points with a bearer token.`,
+  private async post<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error ?? `${path} failed (${res.status})`);
+    return json as T;
+  }
+
+  async upsert(points: VectorPoint[]): Promise<void> {
+    await this.post("/api/memory/upsert", { points });
+  }
+
+  async search(
+    vector: number[],
+    opts: { topK?: number; filter?: VectorFilter } = {},
+  ): Promise<VectorHit[]> {
+    const { hits } = await this.post<{ hits: VectorHit[] }>("/api/memory/search", {
+      vector,
+      topK: opts.topK ?? 5,
+      filter: opts.filter,
+    });
+    return hits;
+  }
+
+  async hybridSearch(
+    vectors: number[][],
+    opts: { topK?: number; filter?: VectorFilter } = {},
+  ): Promise<VectorHit[]> {
+    const rankings = await Promise.all(
+      vectors.map((v) => this.search(v, { topK: 20, filter: opts.filter })),
     );
+    return fuse(rankings, opts.topK ?? 5);
   }
-  async search(): Promise<VectorHit[]> {
-    throw new Error("LiveActianClient.search not enabled (see actian.ts).");
-  }
-  async hybridSearch(): Promise<VectorHit[]> {
-    throw new Error("LiveActianClient.hybridSearch not enabled (see actian.ts).");
-  }
+
   async all(): Promise<VectorPoint[]> {
-    return [];
+    const res = await fetch("/api/memory", { cache: "no-store" });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error ?? "memory dump failed");
+    return json.points as VectorPoint[];
   }
+
   async count(): Promise<number> {
-    return 0;
+    return (await this.all()).length;
   }
 }

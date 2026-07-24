@@ -6,6 +6,7 @@ import { BugLedger } from "@/components/BugLedger";
 import { ControlDock } from "@/components/ControlDock";
 import { ECGMonitor } from "@/components/ECGMonitor";
 import { FitnessSpark } from "@/components/FitnessSpark";
+import { LiveQAPanel } from "@/components/LiveQAPanel";
 import { PhaseStrip } from "@/components/PhaseStrip";
 import { RetrievalPanel } from "@/components/RetrievalPanel";
 import { ScheduleGrid } from "@/components/ScheduleGrid";
@@ -26,16 +27,41 @@ export default function Page() {
   return <CommandCenter />;
 }
 
+/**
+ * Server-rendered shell shown before hydration.
+ *
+ * Crawlers and QA agents can capture this frame, so it carries the real
+ * heading structure and a description of the product rather than a bare
+ * spinner — a Replay Loop QA exploration caught the earlier version and
+ * correctly filed it as a WCAG 1.3.1 violation (no heading elements).
+ */
 function BootScreen() {
   return (
     <div className="shell">
       <div className="topbar">
-        <div className="wordmark">
-          Regenesis<span className="wordmark-dot" />
+        <div>
+          <h1 className="wordmark">
+            Regenesis<span className="wordmark-dot" />
+          </h1>
+          <div className="eyebrow" style={{ marginTop: 4 }}>
+            self-healing scheduling · the app that fixes its own bugs
+          </div>
         </div>
       </div>
-      <div className="empty" style={{ marginTop: 60 }}>
-        initializing instruments…
+      <div className="panel" style={{ marginTop: 24 }}>
+        <div className="panel-head">
+          <h2 className="panel-title">MedShift · shift safety command center</h2>
+        </div>
+        <div className="panel-body">
+          <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.6, maxWidth: "62ch" }}>
+            MedShift schedules hospital staff against certification, rest-window, overtime,
+            consecutive-day, and unit-coverage rules. Regenesis watches those rules for
+            regressions, repairs them, and remembers each fix.
+          </p>
+          <div className="empty" style={{ marginTop: 16 }}>
+            initializing instruments…
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -50,20 +76,17 @@ function CommandCenter() {
       {/* Topbar */}
       <div className="topbar">
         <div>
-          <div className="wordmark">
+          <h1 className="wordmark">
             Regenesis<span className="wordmark-dot" />
-          </div>
+          </h1>
           <div className="eyebrow" style={{ marginTop: 4 }}>
             self-healing scheduling · the app that fixes its own bugs
           </div>
         </div>
         <div style={{ display: "flex", gap: 7, alignItems: "center", flexWrap: "wrap" }}>
-          <span className={`chip ${snap.mode === "live" ? "live" : "sim"}`}>
-            {snap.mode === "live" ? "● live" : "● sim mode"}
-          </span>
-          <span className="chip">Actian VectorAI</span>
-          <span className="chip">Replay QA</span>
-          <span className="chip">Guild</span>
+          <SponsorChip label="Actian VectorAI" mode={snap.modes.actian} />
+          <SponsorChip label="Replay QA" mode={snap.modes.replay} />
+          <SponsorChip label="Guild" mode={snap.modes.guild} />
         </div>
       </div>
 
@@ -103,9 +126,9 @@ function CommandCenter() {
         <div className="col">
           <div className="panel">
             <div className="panel-head">
-              <div className="panel-title">
+              <h2 className="panel-title">
                 <span style={{ color: "var(--violet)" }}>❖</span> Memory recall
-              </div>
+              </h2>
               <span className="chip">Actian · VectorAI DB</span>
             </div>
             <div className="panel-body">
@@ -125,9 +148,9 @@ function CommandCenter() {
 
           <div className="panel">
             <div className="panel-head">
-              <div className="panel-title">
+              <h2 className="panel-title">
                 <span style={{ color: "var(--cyan)" }}>▤</span> Agent activity
-              </div>
+              </h2>
               <span className="chip">Guild · task stream</span>
             </div>
             <div className="panel-body">
@@ -137,9 +160,9 @@ function CommandCenter() {
 
           <div className="panel">
             <div className="panel-head">
-              <div className="panel-title">
+              <h2 className="panel-title">
                 <span style={{ color: "var(--mint)" }}>✦</span> Skill library
-              </div>
+              </h2>
               <span className="chip">Guild · Agent Hub</span>
             </div>
             <div className="panel-body">
@@ -152,18 +175,41 @@ function CommandCenter() {
       {/* Evidence — full width so reproduction steps have room */}
       <div className="panel" style={{ marginTop: 14 }}>
         <div className="panel-head">
-          <div className="panel-title">
-            <span style={{ color: "var(--alarm)" }}>◎</span> QA findings
-          </div>
-          <span className="chip">Replay · Loop QA</span>
+          <h2 className="panel-title">
+            <span style={{ color: "var(--alarm)" }}>◎</span> Safety findings
+          </h2>
+          <span className="chip">in-app oracle · invariant audit</span>
         </div>
         <div className="panel-body">
           <BugLedger bugs={snap.bugs} />
         </div>
       </div>
 
+      {/* The external quality gate, reporting on the real deployment. */}
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="panel-head">
+          <h2 className="panel-title">
+            <span style={{ color: "var(--cyan)" }}>◈</span> Autonomous QA
+          </h2>
+          <span className="chip live">Replay · Loop QA · live</span>
+        </div>
+        <div className="panel-body">
+          <LiveQAPanel />
+        </div>
+      </div>
+
       <ControlDock engine={engine} snap={snap} />
     </div>
+  );
+}
+
+/** A sponsor's name plus whether it is talking to the real service right now. */
+function SponsorChip({ label, mode }: { label: string; mode: "sim" | "live" }) {
+  return (
+    <span className={`chip ${mode}`} title={mode === "live" ? `${label} — live service` : `${label} — simulated`}>
+      ● {label}
+      <span style={{ opacity: 0.65, marginLeft: 5 }}>{mode}</span>
+    </span>
   );
 }
 

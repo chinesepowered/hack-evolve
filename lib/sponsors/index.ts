@@ -1,6 +1,6 @@
 import type { Violation } from "@/lib/domain/types";
 import { LiveActianClient, SimActianClient } from "./actian";
-import { sponsorMode } from "./config";
+import { actianMode, guildMode, replayMode } from "./config";
 import { LiveGuildClient, SimGuildClient } from "./guild";
 import { LiveReplayClient, SimReplayClient } from "./replay";
 import type { ActianClient, GuildClient, ReplayClient } from "./types";
@@ -13,22 +13,17 @@ export interface SponsorSuite {
 
 /**
  * Build the sponsor suite for the current mode. The engine holds only these
- * three interfaces, so "sim" vs "live" is invisible above this line.
+ * three interfaces, so "sim" vs "live" is invisible above this line — and each
+ * sponsor resolves independently, so Actian can be live while Replay and Guild
+ * are still simulated.
  */
 export function createSponsors(probe: () => Violation[]): SponsorSuite {
-  if (sponsorMode() === "live") {
-    return {
-      actian: new LiveActianClient(),
-      replay: new LiveReplayClient(),
-      guild: new LiveGuildClient(),
-    };
-  }
   return {
-    actian: new SimActianClient(),
-    replay: new SimReplayClient(probe),
-    guild: new SimGuildClient(),
+    actian: actianMode() === "live" ? new LiveActianClient() : new SimActianClient(),
+    replay: replayMode() === "live" ? new LiveReplayClient() : new SimReplayClient(probe),
+    guild: guildMode() === "live" ? new LiveGuildClient() : new SimGuildClient(),
   };
 }
 
 export * from "./types";
-export { sponsorMode } from "./config";
+export { sponsorMode, actianMode, replayMode, guildMode, allLive } from "./config";

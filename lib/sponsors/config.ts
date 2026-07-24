@@ -1,28 +1,59 @@
 /**
- * Sponsor integration mode.
+ * Sponsor integration mode — resolved per sponsor, not globally.
  *
- * "sim"  — everything runs in-process against a faithful simulation of each
- *          sponsor API. No network, no accounts, no keys. This is the default
- *          and what runs during development and the pitch video.
+ * "sim"  — runs in-process against a faithful simulation. No Docker, no
+ *          accounts, no keys. Good for development and for a demo machine
+ *          with no network.
+ * "live" — real calls: Actian VectorAI over REST, Replay Loop QA over HTTPS,
+ *          Guild via the platform. Same interfaces either way.
  *
- * "live" — the same interfaces, backed by real HTTP calls to Actian VectorAI,
- *          Replay Loop QA, and Guild. Flip the env var, drop in credentials,
- *          and the adapters below light up. The rest of the app never changes,
- *          because it only ever talks to the interfaces in ./types.
+ * Each sponsor flips independently, because they come online at different
+ * times: Actian is a local Docker container (instant), while Replay and Guild
+ * need accounts and a publicly reachable app. `NEXT_PUBLIC_REGENESIS_MODE`
+ * sets the default; the per-sponsor vars override it.
  *
- * We stay in "sim" until the hackathon starts; the live paths are written and
- * ready so the switch is a one-line change, not a rewrite.
+ * NEXT_PUBLIC_* vars are inlined at build time, so each must be referenced
+ * statically — no dynamic property access.
  */
 export type SponsorMode = "sim" | "live";
 
-export function sponsorMode(): SponsorMode {
-  const env =
-    (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_REGENESIS_MODE) || "sim";
-  return env === "live" ? "live" : "sim";
+function normalize(value: string | undefined, fallback: SponsorMode): SponsorMode {
+  if (value === "live") return "live";
+  if (value === "sim") return "sim";
+  return fallback;
 }
 
+/** The global default, used by any sponsor without an explicit override. */
+export function sponsorMode(): SponsorMode {
+  return normalize(process.env.NEXT_PUBLIC_REGENESIS_MODE, "sim");
+}
+
+export function actianMode(): SponsorMode {
+  return normalize(process.env.NEXT_PUBLIC_ACTIAN_MODE, sponsorMode());
+}
+
+export function replayMode(): SponsorMode {
+  return normalize(process.env.NEXT_PUBLIC_REPLAY_MODE, sponsorMode());
+}
+
+export function guildMode(): SponsorMode {
+  return normalize(process.env.NEXT_PUBLIC_GUILD_MODE, sponsorMode());
+}
+
+/** True when every sponsor is live — drives the single "live" badge. */
+export function allLive(): boolean {
+  return actianMode() === "live" && replayMode() === "live" && guildMode() === "live";
+}
+
+/**
+ * Where the live integrations point.
+ *
+ * Actian is local-first: the Docker image publishes REST on 6573 and gRPC on
+ * 6574. It is read server-side only (see lib/server/actian.ts), so the host is
+ * a plain env var, not a NEXT_PUBLIC_ one.
+ */
 export const SPONSOR_ENDPOINTS = {
-  actian: "https://api.vectoraidb.actian.com/v1",
-  replay: "https://loop-qa.replay.io/api/v1",
-  guild: "https://api.guild.ai/v1",
+  actian: process.env.ACTIAN_URL ?? "http://localhost:6573",
+  replay: process.env.REPLAY_QA_URL ?? "https://loop-qa.replay.io/api/v1",
+  guild: process.env.GUILD_API_URL ?? "https://api.guild.ai",
 } as const;
